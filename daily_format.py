@@ -1,6 +1,9 @@
-import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib.pyplot as plt
+
+# Load the CSV files
+df = pd.read_csv('/Users/fineas/Desktop/Coding/AQI_Proj/daily_aqi_by_cbsa_2022.csv')
+df_county = pd.read_csv('/Users/fineas/Desktop/Coding/AQI_Proj/daily_aqi_by_county_2022.csv')
 
 # Convert the 'Date' column to datetime
 df['Date'] = pd.to_datetime(df['Date'])
