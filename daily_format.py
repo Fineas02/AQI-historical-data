@@ -1,57 +1,34 @@
-import json
+import matplotlib.pyplot as plt
 import pandas as pd
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt
 
-# Load the data file
-with open('/Users/fineas/Desktop/Coding/AQI_Proj/test.json') as f:
-    data = json.load(f)
+# Convert the 'Date' column to datetime
+df['Date'] = pd.to_datetime(df['Date'])
+df_county['Date'] = pd.to_datetime(df_county['Date'])
 
-# Manually parse the JSON data into a list of dictionaries
-data_list = [{'county': entry['county'], 'date_local': entry['date_local'], 'aqi': entry['aqi'], 'arithmetic_mean': entry['arithmetic_mean']} for entry in data]
+# Select the first CBSA and County from the data
+first_cbsa = df['CBSA'].iloc[0]
+first_county = df_county['county Name'].iloc[0]
 
-# Convert the data list to a DataFrame
-df = pd.DataFrame(data_list)
+# Filter the data for the first CBSA and County
+cbsa_data = df[df['CBSA'] == first_cbsa]
+county_data = df_county[df_county['county Name'] == first_county]
 
-# Convert 'date_local' to datetime format
-df['date_local'] = pd.to_datetime(df['date_local'])
+# Create a figure with two subplots
+fig, axs = plt.subplots(2, figsize=(10, 8))
 
-# Keep only the rows with the maximum 'aqi' for each county for each day
-df_max_aqi = df.loc[df.groupby(['county', 'date_local'])['aqi'].idxmax()]
+# Plot the AQI data for the first CBSA
+axs[0].plot(cbsa_data['Date'], cbsa_data['AQI'])
+axs[0].set_title(f'AQI for {first_cbsa}')
+axs[0].set_ylabel('AQI')
+axs[0].set_xlabel('Date')
 
-# Get the list of unique counties
-counties = df_max_aqi['county'].unique()
+# Plot the AQI data for the first County
+axs[1].plot(county_data['Date'], county_data['AQI'])
+axs[1].set_title(f'AQI for {first_county} County')
+axs[1].set_ylabel('AQI')
+axs[1].set_xlabel('Date')
 
-# For each county, create a chart and save it as an HTML file
-for county in counties:
-    # Create a DataFrame for this county
-    county_df = df_max_aqi[df_max_aqi['county'] == county]
-    
-    # Create a line for AQI
-    trace_aqi = go.Scatter(
-        x=county_df['date_local'],
-        y=county_df['aqi'],
-        name='AQI',
-        hovertemplate='AQI: %{y}<extra></extra>'
-    )
-
-    # Create a line for PM2.5
-    trace_pm25 = go.Scatter(
-        x=county_df['date_local'],
-        y=county_df['arithmetic_mean'],
-        name='PM2.5',
-        hovertemplate='PM2.5: %{y}<extra></extra>'
-    )
-
-    # Create a layout
-    layout = go.Layout(
-        title=f'AQI and PM2.5 over time for {county} County',
-        xaxis=dict(title='Date'),
-        yaxis=dict(title='Value'),
-        hovermode='x'
-    )
-
-    # Create a Figure and add the traces
-    fig = go.Figure(data=[trace_aqi, trace_pm25], layout=layout)
-
-    # Save the figure as an HTML file
-    fig.write_html(f'/Users/fineas/Desktop/Coding/AQI_Proj/{county}_chart.html')
+# Automatically adjust the subplot layout
+fig.tight_layout()
+plt.show()
